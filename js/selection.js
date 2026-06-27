@@ -182,6 +182,11 @@
             if (svg) {
                 layer.appendChild(svg);
             }
+        } else if (sel.type === 'magic_full' && sel.mask) {
+            var svg = maskToSvg(sel.mask, imgObj.width, imgObj.height);
+            if (svg) {
+                layer.appendChild(svg);
+            }
         }
     }
 
@@ -311,6 +316,19 @@
                     subtractMask(mask);
                 } else {
                     selections.push({ type: 'magic', mask: mask });
+                }
+            }
+            render();
+            return;
+        }
+
+        if (selectionType === 'magic_full') {
+            var mask = magicWandFullSelect(imgObj, Math.floor(x), Math.floor(y), magicWandTolerance);
+            if (mask) {
+                if (mode === 'subtract') {
+                    subtractMask(mask);
+                } else {
+                    selections.push({ type: 'magic_full', mask: mask });
                 }
             }
             render();
@@ -519,6 +537,8 @@
                         if (App.Watermark && App.Watermark.addImageWatermark) {
                             App.Watermark.addImageWatermark(img);
                             App.showToast(App.i18n.t('selection.added_as_watermark'));
+                            App.deactivateAllImgTools();
+                            App.setTool('select');
                         } else {
                             App.showToast(App.i18n.t('selection.watermark_unavailable'));
                         }
@@ -601,6 +621,42 @@
         return mask;
     }
 
+    function magicWandFullSelect(imgObj, startX, startY, tolerance) {
+        var canvas = document.createElement('canvas');
+        canvas.width = imgObj.width;
+        canvas.height = imgObj.height;
+        var ctx = canvas.getContext('2d');
+        ctx.drawImage(imgObj.img, 0, 0, imgObj.width, imgObj.height);
+        var imgData = ctx.getImageData(0, 0, canvas.width, canvas.height);
+        var data = imgData.data;
+        var w = canvas.width;
+        var h = canvas.height;
+
+        var startIdx = (startY * w + startX) * 4;
+        var targetR = data[startIdx];
+        var targetG = data[startIdx + 1];
+        var targetB = data[startIdx + 2];
+
+        var mask = new Uint8ClampedArray(w * h * 4);
+
+        for (var y = 0; y < h; y++) {
+            for (var x = 0; x < w; x++) {
+                var idx = (y * w + x) * 4;
+                var dr = Math.abs(data[idx] - targetR);
+                var dg = Math.abs(data[idx + 1] - targetG);
+                var db = Math.abs(data[idx + 2] - targetB);
+                if (dr + dg + db <= tolerance * 3) {
+                    mask[idx] = 255;
+                    mask[idx + 1] = 255;
+                    mask[idx + 2] = 255;
+                    mask[idx + 3] = 255;
+                }
+            }
+        }
+
+        return mask;
+    }
+
     function subtractSelection(sel) {
         var imgObj = App.getActiveImage();
         if (!imgObj) return;
@@ -671,6 +727,8 @@
             ctx.closePath();
             ctx.fill();
         } else if (sel.type === 'magic' && sel.mask) {
+            return sel.mask;
+        } else if (sel.type === 'magic_full' && sel.mask) {
             return sel.mask;
         }
 

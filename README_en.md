@@ -111,7 +111,8 @@ Double-click `index.html` to open in your browser.
   - Circle selection
   - Ellipse selection
   - Polygon selection
-  - Magic wand selection (click to select similar colors)
+  - Magic wand selection (click to select similar color area)
+  - Magic wand selection (full image): Select all similar color areas across the entire image that match the threshold, equivalent to holding Shift and clicking all similar color blocks across the full image
 - **Selection Operations**:
   - `Shift + Drag`: Add to selection
   - `Ctrl + Drag`: Subtract from selection

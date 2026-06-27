@@ -170,7 +170,10 @@
         });
 
         els.fileInput.addEventListener('change', function (e) {
-            if (e.target.files[0]) App.Images.addImage(e.target.files[0]);
+            var files = Array.from(e.target.files);
+            files.forEach(function (file) {
+                App.Images.addImage(file);
+            });
             els.fileInput.value = '';
         });
 
@@ -442,7 +445,7 @@
             var type = els.selectionType.value;
             App.Selection.setSelectionType(type);
             if (els.magicWandToleranceGroup) {
-                els.magicWandToleranceGroup.style.display = (type === 'magic') ? 'block' : 'none';
+                els.magicWandToleranceGroup.style.display = (type === 'magic' || type === 'magic_full') ? 'block' : 'none';
             }
         });
 
@@ -1710,6 +1713,7 @@
         App.initEls();
         App.showUploadHint();
         setTool('select');
+        App.activateImgTool = activateImgTool;
 
         setupTooltipSystem();
         setupImageEvents();
